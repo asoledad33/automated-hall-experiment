@@ -1,54 +1,20 @@
-
-#%%
+#%% matplotlib notebook
 import time
 import datetime as dt
-import random 
-#import serial
+import random
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import serial.py
 
-xs = []
-ys = []
-
-#plt.style.use('fivethirtyeight')
-
-def animate(i):
-    # Add x and y data to lists
-    xs.append(dt.datetime.now().strftime('%H:%M:%S.%f'))
-    ys.append(random.random())
-    
-    # Limit x and y axes to 10 values
-    if len(xs) > 10:
-        xs.pop(0)
-    
-    if len(ys) > 10:
-        ys.pop(0)
-    
-    # Draw x and y lists
-    plt.cla()
-    plt.plot(xs, ys)
-
-    # Format plot
-    plt.xticks(rotation=45, ha='right')
-    plt.subplots_adjust(bottom=0.30)
-    plt.title('Voltage over Time')
-    plt.ylabel('Voltage (mV)')
-    
-# Set up plot to call animate() function periodically
-ani = animation.FuncAnimation(plt.gcf(), animate, interval=1000)
-
-plt.tight_layout()
-plt.show()
-
-'''
 def init():
   ser = serial.Serial(
     port= '/dev/tty.usbserial-1410',
     baudrate=4800,
     
   ) 
-
+  
   ser.close()
   ser.open()
   ser.isOpen()
@@ -66,5 +32,37 @@ def init():
         print("%s %s"%(time.time(),out))
         
   #Save the code above in a file Serial.py and running it from the command line produces the output.
-'''
-# %%
+  
+def animate(i, df):
+    
+    df.loc[len(df.index)] = [dt.datetime.now().strftime('%H:%M:%S.%f'), random.random()] 
+    
+    # Draw x and y axes, limiting to 10 values in the graph 
+    plt.cla()
+    plt.plot(df['datetime'][-10:],df['voltage'][-10:]) 
+    
+    # Save data
+    store.append('name_of_frame', df.loc[len(df.index)], format='t',  data_columns=True)
+
+    # Format plot
+    plt.xticks(rotation=45, ha='right')
+    plt.subplots_adjust(bottom=0.30)
+    plt.title('Voltage over Time')
+    plt.ylabel('Voltage (mV)')
+
+def main():
+  xs = []
+  ys = []
+
+  df = pd.DataFrame({
+      'datetime': [],
+      'voltage': []
+  })
+  
+store = pd.HDFStore('test.h5')
+  
+# Set up plot to call animate() function periodically
+ani = animation.FuncAnimation(plt.gcf(), animate, fargs=(df), interval=1000)
+
+plt.tight_layout()
+plt.show()
